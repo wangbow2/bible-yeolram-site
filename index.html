@@ -23,6 +23,28 @@ main{max-width:900px;margin:0 auto;padding-block:16px;padding-left:max(16px,env(
 .ans.show::before{content:"▶ "}
 .ans .ref{font-weight:400;color:var(--refc);font-size:.85em;margin-left:4px}
 .pgbtn{position:absolute;left:8px;top:6px;font-size:12px;padding:3px 8px;border-radius:5px;border:1px solid var(--hidbd);background:var(--btn);color:var(--btnfg);cursor:pointer}
+.alist{display:none}
+@media (max-width:700px){
+header{gap:6px;padding-block:6px}
+header b{font-size:13px;width:100%;margin:0}
+header button,header select{font-size:13px;padding:5px 8px}
+header .stat{font-size:12px}
+main{padding-block:10px}
+.pgbtn{font-size:11px;padding:2px 6px}
+.ans{font-size:9px;padding:0 4px;max-width:none;opacity:.9;left:2%!important;transform:translateY(-110%)}
+.ans.hid::before,.ans.show::before{content:attr(data-n)}
+.ans span{display:none!important}
+.ans.show{background:var(--showbg);border:1px solid var(--red);white-space:nowrap}
+.alist{display:flex;flex-direction:column;gap:1px;background:var(--paper);border-top:1px solid var(--hidbd);padding:6px 10px 10px}
+.arow{display:flex;gap:8px;align-items:baseline;padding:7px 2px;border-bottom:1px dotted #ccc;font-size:15px;line-height:1.4;cursor:pointer;color:#222}
+.arow .q{flex:none;min-width:2.6em;font-weight:700;color:var(--hidfg)}
+.arow .t{min-width:0}
+.arow.hid .t{color:var(--hidfg);background:var(--hidbg);border:1px dashed var(--hidbd);border-radius:4px;padding:1px 8px;font-size:13px}
+.arow.hid .t::before{content:"눌러서 정답 보기"}
+.arow.hid .t span{display:none}
+.arow.show .t{color:var(--red);font-weight:600}
+.arow .ref{font-weight:400;color:var(--refc);font-size:.8em;margin-left:4px}
+}
 </style>
 <header><b>성경열람 문제집 · 정답 가리기</b>
 <select id="jump"><option value="">권 바로가기</option><option value="5">창세기</option><option value="11">출애굽기</option><option value="17">레위기</option><option value="20">민수기</option><option value="25">신명기</option><option value="31">여호수아</option><option value="35">사사기</option><option value="38">룻기</option><option value="40">사무엘상</option><option value="44">사무엘하</option><option value="48">열왕기상</option><option value="53">열왕기하</option><option value="57">역대상</option><option value="60">역대하</option><option value="64">에스라</option><option value="68">느헤미야</option><option value="73">에스더</option><option value="77">욥기</option><option value="82">시편</option><option value="90">잠언</option><option value="98">전도서</option><option value="102">아가</option><option value="104">이사야</option><option value="112">예레미야</option><option value="117">예레미야애가</option><option value="119">에스겔</option><option value="128">다니엘</option><option value="133">호세아</option><option value="136">요엘</option><option value="138">아모스</option><option value="140">오바댜</option><option value="141">요나</option><option value="142">미가</option><option value="144">나훔</option><option value="145">하박국</option><option value="146">스바냐</option><option value="148">학개</option><option value="151">스가랴</option><option value="155">말라기</option><option value="158">마태복음</option><option value="167">마가복음</option><option value="171">누가복음</option><option value="180">요한복음</option><option value="185">사도행전</option><option value="194">로마서</option><option value="199">고린도전서</option><option value="204">고린도후서</option><option value="208">갈라디아서</option><option value="211">에베소서</option><option value="213">빌립보서</option><option value="215">골로새서</option><option value="217">데살로니가전서</option><option value="219">데살로니가후서</option><option value="221">디모데전서</option><option value="224">디모데후서</option><option value="226">디도서</option><option value="228">빌레몬서</option><option value="229">히브리서</option><option value="233">야고보서</option><option value="235">베드로전서</option><option value="238">베드로후서</option><option value="240">요한일서</option><option value="243">요한이서</option><option value="244">요한삼서</option><option value="245">유다서</option><option value="247">요한계시록</option></select>
@@ -38,19 +60,25 @@ for(let p=1;p<=NP;p++){
   div.innerHTML=`<img loading="lazy" src="p/pg-${String(p).padStart(3,'0')}.jpg" alt="${p}쪽"><span class="no">${p}/${NP}</span>`;
   if(byP[p]){
     const b=document.createElement('button');b.className='pgbtn';b.textContent='이 쪽 정답 보기';
-    b.onclick=()=>{const els=div.querySelectorAll('.ans');const anyHid=[...els].some(e=>e.classList.contains('hid'));els.forEach(e=>set(e,anyHid));b.textContent=anyHid?'이 쪽 가리기':'이 쪽 정답 보기';stat()};
+    const ids=byP[p];b.onclick=()=>{const els=ids.flatMap(i=>[...document.querySelectorAll('[data-i="'+i+'"]')]);const anyHid=[...els].some(e=>e.classList.contains('hid'));els.forEach(e=>set(e,anyHid));b.textContent=anyHid?'이 쪽 가리기':'이 쪽 정답 보기';stat()};
     div.appendChild(b);
-    byP[p].forEach(i=>{const a=D[i];const e=document.createElement('div');e.className='ans hid';
+    const L=document.createElement('div');L.className='alist';
+    byP[p].slice().sort((u,v)=>D[u].n-D[v].n).forEach(i=>{const a=D[i];const e=document.createElement('div');e.className='ans hid';e.dataset.i=i;e.dataset.n=a.n+'번';
       e.style.left=(a.x*100)+'%';e.style.top=(a.y*100)+'%';
       e.innerHTML=`<span>${a.a}<span class="ref">(${a.r})</span></span>`;e.title=a.b+' '+a.n+'번';
-      e.onclick=()=>{set(e,e.classList.contains('hid'));stat()};div.appendChild(e)});
+      const r=document.createElement('div');r.className='arow hid';r.dataset.i=i;
+      r.innerHTML=`<span class="q">${a.n}번</span><span class="t"><span>${a.a}<span class="ref">(${a.r})</span></span></span>`;
+      e.onclick=r.onclick=()=>{toggle(i)};div.appendChild(e);L.appendChild(r)});
+    div._list=L;
   }
-  m.appendChild(div);
+  m.appendChild(div);if(div._list)m.appendChild(wrapList(div._list));
 }
+function wrapList(L){const w=document.createElement('div');w.style.margin='-18px auto 18px';w.appendChild(L);return w}
+function toggle(i){const els=document.querySelectorAll('[data-i="'+i+'"]');const show=els[0].classList.contains('hid');els.forEach(e=>set(e,show));stat()}
 function set(e,show){e.classList.toggle('hid',!show);e.classList.toggle('show',show)}
 function stat(){const n=document.querySelectorAll('.ans.show').length;document.getElementById('stat').textContent=`정답 공개 ${n} / ${D.length}`}
-document.getElementById('hideAll').onclick=()=>{document.querySelectorAll('.ans').forEach(e=>set(e,false));stat()};
-document.getElementById('showAll').onclick=()=>{document.querySelectorAll('.ans').forEach(e=>set(e,true));stat()};
+document.getElementById('hideAll').onclick=()=>{document.querySelectorAll('.ans,.arow').forEach(e=>set(e,false));stat()};
+document.getElementById('showAll').onclick=()=>{document.querySelectorAll('.ans,.arow').forEach(e=>set(e,true));stat()};
 document.getElementById('jump').onchange=e=>{if(e.target.value)document.getElementById('p'+e.target.value).scrollIntoView()};
 stat();
 </script>
